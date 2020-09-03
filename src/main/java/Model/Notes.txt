@@ -1,0 +1,70 @@
+Thread pool - with threads for each Robot.
+Thread for the UI.
+Thread for the ScoreCount.
+Thread for the Player's actions - Can only submit a number of actions per second.
+
+Questions to Ask Myself:
+
+Which classes are the Producer and Consumer?
+
+Which class has the Blocking Queue.
+
+How will I lock the Matrix?
+
+Can a Robot know that another Robot is leaving a square and start to move towards that square.
+
+We could block a Robot for the specific time to travel and then start travel.
+
+Or start moving it at the exact time that it takes the other Robot to leave and our Robot to get there.
+
+Would every map square have their own mutex that can be gotten?
+How would we get two?
+Could the objects inside be synchronized themselves and all have their own mutexes.
+
+public class Square
+{
+    private Object mutex = new Object();
+    private Robot currentRobot;
+    private atomic boolean occupied;
+    
+    public int get()
+    {
+        synchronized(mutex)
+        {
+            return robot if has;
+        }
+    }
+    
+    public void setRobot(Robot inRobot)
+    {
+        if (robot != null)
+        {
+            synchronized(mutex)
+            {
+                robot = inRobot;
+                //Should this wait until it gets there
+            }
+        }
+    }
+}
+
+Once the Robot leaves the square, it doesn't need to lock the one it's
+leaving from, it needs to lock the one it's going from.
+Since it will take around 250 milliseconds to leave the square.
+No need for the
+Classes Required:
+
+    Controller:
+        MapController - Controls the GameMap - Own Thread
+        GameDataController - Controls the GameData - Own Thread
+        RobotFactory - On it's on Thread - Creates Robots every 2000 milliseconds or based on difficulty.
+        ActionProcessor - On it's on Thread - Takes actions from UI and consumes them. 
+                        Probably has MapController to destroy Robots.
+    Model:
+        Robot.java
+        GameMap.java
+        GameData.java
+        
+    View:
+        ArenaListener.java
+        SwingArena.java
