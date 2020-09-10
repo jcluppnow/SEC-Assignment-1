@@ -6,12 +6,45 @@ public class App
 {
     public static void main(String[] args) 
     {
-		GameMap gameMap = new GameMap(4,5);
+		int width = 9;
+		int height = 9;
+		int creationDelay = 5000;
+		
+		MapData mapData = new MapData(width, height);
+		MainController mainController = new MainController(mapData);
+		RobotFactory robotFactory = new RobotFactory();
+	
+		if (mainController == null)
+		{
+			System.out.println("Main Controller is null inside App.");
+		}
+		
+		if (robotFactory == null)
+		{
+			System.out.println("Robot Factory is null inside App.");
+		}
+			
+		FactoryController factoryController = new FactoryController(mainController, robotFactory, creationDelay);
+		
+		if (factoryController == null)
+		{
+			System.out.println("Factory Controller is null inside App.");
+		}
+		
+		//factoryController.start();
+		
         // Note: SwingUtilities.invokeLater() is equivalent to JavaFX's Platform.runLater().
         SwingUtilities.invokeLater(() ->
         {
             JFrame window = new JFrame("Example App (Swing)");
-            SwingArena arena = new SwingArena(gameMap);
+			
+			//Create Starting Objects
+            SwingArena arena = new SwingArena(width, height);
+			
+			mainController.setArena(arena);
+			
+			factoryController.start();
+			
             arena.addListener((x, y) ->
             {
                 System.out.println("Arena click at (" + x + "," + y + ")");
