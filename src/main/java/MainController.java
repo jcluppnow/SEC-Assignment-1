@@ -1,5 +1,8 @@
 import java.util.*;
 import javax.swing.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 public class MainController
 {
@@ -7,6 +10,8 @@ public class MainController
     private ArrayList<Robot> robotsOnBoard;
     private SwingArena arena;
 	private MapData mapData;
+	private JTextArea logger;
+	private JLabel scoreLabel;
 	private ExecutorService fixedThreadPool;
 	
     //This Controller will get the Robots from Factory.
@@ -40,13 +45,13 @@ public class MainController
         }
     }
     
-	public boolean startTaskInNewThread(Runnable newTask)
+	public boolean startTaskInNewThread(Runnable inTask)
 	{
 		boolean startTask = false;
 		
 		try
 		{
-			fixedThreadPool.submit(myTask);
+			fixedThreadPool.submit(inTask);
 			startTask = true;
 		}
 		catch (RejectedExecutionException rejectedException)
@@ -183,7 +188,7 @@ public class MainController
 				
 				if (currentLocation != null)
 				{
-					if (((currentLocation.getX() == x) && (currentLocation.getY() == y))
+					if ((currentLocation.getX() == x) && (currentLocation.getY() == y))
 					{
 						//Inside endLife, the Robot will end its threads and remove itself from GameMap.
 						tempRobot.endLife();
@@ -224,6 +229,8 @@ public class MainController
 			{
 				robotsOnBoard.add(inRobot);
 			}
+			//Robot has successfully been created so we want to add this event to the logger.
+			printEvent("Robot " + inRobot.getUniqueID() + ": Created at " + inRobot.getCurrentLocation().locationToString());
 			//Since a new Robot has been added, the Map has changed.
 			//So we can tell SwingArena to repaint.
 			robotHasMoved();
@@ -307,5 +314,30 @@ public class MainController
 		arena = inArena;
 	}
 	
-	public void 
+	public void setScoreLabel(JLabel inScoreLabel)
+	{
+		scoreLabel = inScoreLabel;
+	}
+	
+	public void setLogger(JTextArea inLogger)
+	{
+		logger = inLogger;
+	}
+	
+	//Do we need to synchronise this as multiple threads will be calling this.
+	public void printEvent(String inEvent)
+	{
+		SwingUtilities.invokeLater(() ->
+        {
+			logger.append(inEvent);
+		});
+	}
+	
+	public void updateScore(int inScore)
+	{
+		SwingUtilities.invokeLater(() ->
+		{
+			scoreLabel.setText("Score: " + inScore);
+		});
+	}	
 }

@@ -5,8 +5,7 @@ public class RobotController implements Runnable
 {
 	private MainController mainController;
 	private Robot myRobot;
-	private Thread myThread;
-		
+	
 	public RobotController(MainController inMainController, Robot inRobot)
 	{
 		if ((inMainController != null) && (inRobot != null))
@@ -74,7 +73,7 @@ public class RobotController implements Runnable
 					myRobot.setProgress(0.0);
 						
 					//Sleep for delay as moving should only occur after every delay.
-					myThread.sleep(myRobot.getDelay()); //myThread??	
+					Thread.sleep(myRobot.getDelay()); //myThread??	
 				}
 				else
 				{

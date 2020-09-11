@@ -17,14 +17,19 @@ public class ScoreTracker implements Runnable
 		{
 			while (true)
 			{
-				synchronized(mutex);
+				synchronized(mutex)
 				{
 					score += 10;
 					//Should this line be inside or outside?
+					//Keep it inside therefore the score can be consistent.
 					mainController.updateScore(score);
 				}
 				Thread.sleep(1000);
 			}
+		}
+		catch (InterruptedException interruptedException)
+		{
+			//Do something
 		}
 	}
 	
@@ -44,3 +49,4 @@ public class ScoreTracker implements Runnable
 			score = score + 10;
 		}
 	}
+}

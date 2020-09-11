@@ -13,7 +13,9 @@ public class App
 		MapData mapData = new MapData(width, height);
 		MainController mainController = new MainController(mapData);
 		RobotFactory robotFactory = new RobotFactory();
-	
+		ScoreTracker scoreTracker = new ScoreTracker(mainController);
+		ActionsContainer actionsContainer = new ActionsContainer();
+		
 		if (mainController == null)
 		{
 			System.out.println("Main Controller is null inside App.");
@@ -31,21 +33,14 @@ public class App
 			System.out.println("Factory Controller is null inside App.");
 		}
 		
-		//factoryController.start();
-		
         // Note: SwingUtilities.invokeLater() is equivalent to JavaFX's Platform.runLater().
         SwingUtilities.invokeLater(() ->
         {
             JFrame window = new JFrame("Example App (Swing)");
 			
-			//Create Starting Objects
-            SwingArena arena = new SwingArena(width, height);
-			
-			mainController.setArena(arena);
-			
-			factoryController.start();
-			
-            arena.addListener((x, y) ->
+			SwingArena arena = new SwingArena(width, height, actionsContainer);
+            
+			arena.addListener((x, y) ->
             {
                 System.out.println("Arena click at (" + x + "," + y + ")");
             });
@@ -53,7 +48,7 @@ public class App
             JToolBar toolbar = new JToolBar();
 //             JButton btn1 = new JButton("My Button 1");
 //             JButton btn2 = new JButton("My Button 2");
-            JLabel label = new JLabel("Score: 999");
+            JLabel label = new JLabel("Score: 0");
 //             toolbar.add(btn1);
 //             toolbar.add(btn2);
             toolbar.add(label);
@@ -62,12 +57,10 @@ public class App
 //             {
 //                 System.out.println("Button 1 pressed");
 //             });
-            
+
             JTextArea logger = new JTextArea();
             JScrollPane loggerArea = new JScrollPane(logger);
             loggerArea.setBorder(BorderFactory.createEtchedBorder());
-            logger.append("Hello\n");
-            logger.append("World\n");
             
             JSplitPane splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT, arena, logger);
@@ -83,6 +76,19 @@ public class App
             window.setVisible(true);
             
             splitPane.setDividerLocation(0.75);
+			
+			//Create Starting Objects			
+			mainController.setArena(arena);
+			
+			mainController.startTaskInNewThread(factoryController);
+			
+			//Will need to start the Score Tracker here.
+			//mainController.startTaskInNewThread(scoreTracker);
+			
+			//Add Logger and  Label to MainController
+			mainController.setLogger(logger);
+			
+			mainController.setScoreLabel(label);
         });
     }    
 }

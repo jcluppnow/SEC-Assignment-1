@@ -5,8 +5,6 @@ public class FactoryController implements Runnable
 	private RobotFactory robotFactory;
 	private int creationDelay;
 	
-	private Thread myThread;
-	
 	public FactoryController(MainController inMainController, RobotFactory inRobotFactory, int inCreationDelay)
 	{
 		if (inMainController == null || inRobotFactory == null)
@@ -31,6 +29,7 @@ public class FactoryController implements Runnable
 		}
 	}
 	
+	//Task that runs on this Thread
 	public void run()
 	{
 		try
@@ -45,14 +44,15 @@ public class FactoryController implements Runnable
 				//Every Creational Delay - Try to create another Robot.
 				Robot newRobot = robotFactory.createRobot();
 				RobotController newRobotController = robotFactory.createRobotController(mainController, newRobot);
-					
+				
 				//Check if they were initialized correctly.
 				if ((newRobot != null) && (newRobotController != null))
 				{
 					if (mainController.setNewRobotInCorner(newRobot) == true)
 					{
 						//Start up the movement thread.
-						newRobotController.start();
+						//We start this by submitting the robotController as a Task to the ThreadPool
+						mainController.startTaskInNewThread(newRobotController);
 					}
 					else
 					{
@@ -62,7 +62,7 @@ public class FactoryController implements Runnable
 						//set corner again after Creation Delay. Don't waste resources.
 					}
 				}
-				myThread.sleep(creationDelay);
+				Thread.sleep(creationDelay);
 			}
 		}
 		catch (InterruptedException interruptedException)

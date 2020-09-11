@@ -260,7 +260,7 @@ public class MapData
 		int destinationXLocation = destinationLocation.getX();
 		int destinationYLocation = destinationLocation.getY();
 		
-//If y is equal, vertical movement is happening and only x changes.
+		//If y is equal, vertical movement is happening and only x changes.
 		//If x is equal, horizontal movement is happening and only y changes.
 		//Need to handle for out of bounds array
 		

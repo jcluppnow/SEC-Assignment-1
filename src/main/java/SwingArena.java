@@ -260,13 +260,21 @@ public class SwingArena extends JPanel
 		Runnable myTask = () ->
 		{
 			//Create a new action with the coordinates and time it occurred.
-			Action newAction = (x, y, inClickTime);
+			Action newAction = new Action(x, y, inClickTime);
+			
+			try
+			{
+				//Add the action to the Blocking Queue
+				actionsContainer.putNextAction(newAction);
+			}
+			catch(InterruptedException interruptedException)
+			{
+				//Do something
+			}
+		};
 		
-			//Add the action to the Blocking Queue
-			actionsContainer.putNextAction(newAction);
-		}
-		
-		mainController
+		//Submit the task to be started on the ThreadPool.
+		mainController.startTaskInNewThread(myTask);
     }
         
 }
