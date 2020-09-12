@@ -4,12 +4,20 @@ public class ScoreTracker implements Runnable
 	private int score;
 	private Object mutex = new Object();
 	
-	public ScoreTracker(MainController inMainController)
+	public ScoreTracker(MainController inMainController) throws ScoreTrackerException
 	{
-		score = 0;
-		mainController = inMainController;
+		if (inMainController == null)
+		{
+			throw new ScoreTrackerException("Main Controller is null - Inside ScoreTracker Constructor.");
+		}
+		else
+		{
+			score = 0;
+			mainController = inMainController;
+		}
 	}
 	
+	@Override
 	public void run()
 	{
 		//This is the task.
@@ -33,7 +41,7 @@ public class ScoreTracker implements Runnable
 		}
 	}
 	
-	public void destroyedRobot(Robot inRobot)
+	public void destroyedRobot(Robot inRobot, long destructionTime)
 	{
 		//This is where we add the worth of the Robot to the Score
 		//Using the formula - 10 + 100 (t/d) where d is the Robots delay value
@@ -44,9 +52,21 @@ public class ScoreTracker implements Runnable
 		//Threads that could be accessing this include, Current Thread in Score Tracker & 
 		//Main Controller which will create a new task of to calcuate the score which
 		//will call this method.
+		
+		//Calculate Bonus -- do this outside of synchronized want to minimize code inside
+		//synchronized statement.
+		
+		score += calculateRobotBonus(inRobot, destructionTime);
 		synchronized(mutex)
 		{
-			score = score + 10;
+			//Tell Main Controller to notify UI that score has changed.
+			mainController.updateScore(score);
 		}
+	}
+	
+	public int calculateRobotBonus(Robot inRobot, long inDestructionTime)
+	{
+		//Typecast to integer to prevent possible lossy conversion.
+		return (int) (10 + (100 * (inDestructionTime / inRobot.getDelay())));
 	}
 }

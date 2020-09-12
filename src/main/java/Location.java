@@ -2,12 +2,12 @@ public class Location<T>
 {
 	private T x, y;
 	private String locationName;
-	
-    public Location()
-    {
-        locationName = "";
-    }
     
+	public Location()
+	{
+		locationName = "";
+	}
+	
 	public Location(T inX, T inY, String inName)
 	{
 		x = inX;

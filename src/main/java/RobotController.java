@@ -6,19 +6,31 @@ public class RobotController implements Runnable
 	private MainController mainController;
 	private Robot myRobot;
 	
-	public RobotController(MainController inMainController, Robot inRobot)
+	public RobotController(MainController inMainController, Robot inRobot) throws RobotControllerException
 	{
-		if ((inMainController != null) && (inRobot != null))
+		if ((inMainController == null) || (inRobot == null))
 		{
-			mainController = inMainController;
-			myRobot = inRobot;
+			if (inMainController == null)
+			{
+				throw new RobotControllerException("Main Controller is null - Inside RobotController Constructor.");
+			}
+			else
+			{
+				throw new RobotControllerException("Robot is null - Inside RobotController Constructor.");
+			}
+		}
+		else if ((inMainController == null) && (inRobot == null))
+		{
+			throw new RobotControllerException("Main Controller & Robot is null - Inside RobotController Constructor.");
 		}
 		else
 		{	
-			//Throw RobotController exception.
+			mainController = inMainController;
+			myRobot = inRobot;
 		}
 	}
 	
+	@Override
 	public void run()
 	{
 		//When this is created, should this sleep before moving?
@@ -28,7 +40,8 @@ public class RobotController implements Runnable
 		//Before this happens, currentLocation & destinationLocation must be set.
 		try
 		{
-			while (true)
+			//So this Thread will run as long as the Robot remains alive.
+			while (myRobot.getAliveStatus() == true)
 			{
 				boolean setStatus = mainController.setMovingRobotLocation(myRobot);
 				
@@ -48,7 +61,7 @@ public class RobotController implements Runnable
 						//Ceiling ensures that it equals 1.0 not 0.9999 etc
 						//Convert the result after formating from String back to Double.
 						myRobot.setProgress(Double.parseDouble(df.format(myRobot.getProgress() + myRobot.getSpeed())));
-							
+
 						//Tell the controller that this Robot has moved, which tells the Arena that
 						//a Robot's location has changed.
 						mainController.robotHasMoved();
@@ -92,4 +105,26 @@ public class RobotController implements Runnable
 			System.out.println("Robot is null");
 		}
 	}
+	
+	public boolean matchingRobot(Robot inRobot)
+	{
+		boolean matchingRobotStatus = false;
+		
+		if (myRobot.equals(inRobot))
+		{
+			matchingRobotStatus = true;
+		}
+		
+		return matchingRobotStatus;
+	}
+	
+	public void stopThread()
+	{
+		//Marks the Robot as not alive anymore.
+		myRobot.setDead();
+		
+		//Set the Robot to null.
+		myRobot = null;
+	}
+		
 }

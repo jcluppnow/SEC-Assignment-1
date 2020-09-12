@@ -12,6 +12,7 @@ public class Robot implements Cloneable
 	private double progress;
 	private String movingDirection;
 	private static final double TOLERANCE = 0.0001;
+	private boolean aliveStatus;
 	
 	public Robot(int inID, int inDelay)
 	{
@@ -20,6 +21,7 @@ public class Robot implements Cloneable
 		speed = 0.1;
 		progress = 0.0;
 		movingDirection = "Neutral";
+		aliveStatus = true;
 	}
 	
     public Robot(int inID, int inDelay, int inRowLocation, int inColumnLocation)
@@ -30,6 +32,7 @@ public class Robot implements Cloneable
 		speed = 0.1;	//This is gotten from dividing how long it takes to travel by frames. 50/500
 		progress = 0.0;
 		movingDirection = "Neutral";
+		aliveStatus = true;
 	}
 	
 	@Override
@@ -145,6 +148,11 @@ public class Robot implements Cloneable
         return "Robot: " + uniqueID;
     }
 	
+	public boolean getAliveStatus()
+	{
+		return aliveStatus;
+	}
+	
 	public void cleanUp()
 	{
 		if (destinationLocation != null)
@@ -162,5 +170,10 @@ public class Robot implements Cloneable
 			progress = 0.0;
 		}*/
 		progress = 0.0;
+	}
+	
+	public void setDead()
+	{
+		aliveStatus = false;
 	}
 }

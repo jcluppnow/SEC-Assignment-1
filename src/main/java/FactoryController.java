@@ -5,21 +5,24 @@ public class FactoryController implements Runnable
 	private RobotFactory robotFactory;
 	private int creationDelay;
 	
-	public FactoryController(MainController inMainController, RobotFactory inRobotFactory, int inCreationDelay)
+	public FactoryController(MainController inMainController, RobotFactory inRobotFactory, int inCreationDelay) throws FactoryControllerException
 	{
 		if (inMainController == null || inRobotFactory == null)
 		{
 			//Throw FactoryController exception
-			System.out.println("\n\nINSIDE FACTORYCONTROLLER CONSTRUCTOR:\nFactoryController not being constructed properly");
 			if (mainController == null)
 			{
-				System.out.println("\tMain Controller is Null.");
+				throw new FactoryControllerException("Main Controller is null - Inside FactoryController Constructor.");
 			}
 			
 			if (inRobotFactory == null)
 			{
-				System.out.println("\tRobot Factory is Null.\n\n");
+				throw new FactoryControllerException("Main Controller is null - Inside FactoryController Constructor.");
 			}
+		}
+		else if ((inMainController == null) && (inRobotFactory == null))
+		{
+			throw new FactoryControllerException("Main Controller is null - Inside FactoryController Constructor.");
 		}
 		else
 		{	
@@ -30,6 +33,7 @@ public class FactoryController implements Runnable
 	}
 	
 	//Task that runs on this Thread
+	@Override
 	public void run()
 	{
 		try
@@ -50,8 +54,12 @@ public class FactoryController implements Runnable
 				{
 					if (mainController.setNewRobotInCorner(newRobot) == true)
 					{
+						//Add all the Robot Controllers to a List in MainController so that
+						//its easy to just iterate through and find the Robots controller.
+						mainController.addRobotController(newRobotController);
+						
 						//Start up the movement thread.
-						//We start this by submitting the robotController as a Task to the ThreadPool
+						//We start this by submitting the robotController as a Task to the ThreadPool.
 						mainController.startTaskInNewThread(newRobotController);
 					}
 					else
@@ -68,6 +76,10 @@ public class FactoryController implements Runnable
 		catch (InterruptedException interruptedException)
 		{
 			//Do something here.
+		}
+		catch (RobotFactoryException robotFactoryException)
+		{
+			System.out.println(robotFactoryException.getMessage());;
 		}
 	}
 }

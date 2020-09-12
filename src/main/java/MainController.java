@@ -7,36 +7,52 @@ import java.util.concurrent.RejectedExecutionException;
 public class MainController
 {
 	private Object mutex = new Object();
+	
     private ArrayList<Robot> robotsOnBoard;
+	private ArrayList<RobotController> robotControllers;
+	
     private SwingArena arena;
 	private MapData mapData;
+	private ScoreTracker scoreTracker;
+	
 	private JTextArea logger;
 	private JLabel scoreLabel;
 	private ExecutorService fixedThreadPool;
 	
     //This Controller will get the Robots from Factory.
     //Will control all communication Between Robots and Arena
-    public MainController(MapData inMapData)
+    public MainController(MapData inMapData) throws MainControllerException
 	{
 		if (inMapData == null)
 		{
-			System.out.println("\n\nInside MainController Constructor:\n\tMap Data is null");
-			//Throw Main Controller exception.
+			throw new MainControllerException("Map Data is null - Inside Main Controller Constructor.");
 		}
 		else
 		{
 			mapData = inMapData;
 			robotsOnBoard = new ArrayList<Robot>();
+			robotControllers = new ArrayList<RobotController>();
 			fixedThreadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		}
 	}
 	
-    public MainController(SwingArena inArena, MapData inMapData)
+    public MainController(SwingArena inArena, MapData inMapData) throws MainControllerException
     {
-        if (arena == null || inMapData == null)
+        if (inArena == null || inMapData == null)
         {
-            //Throw MainController exception.
+            if (arena == null)
+			{
+				throw new MainControllerException("Arena is null - Inside Main Controller Constructor.");
+			}
+			else
+			{
+				throw new MainControllerException("Map Data is null - Inside Main Controller Constructor.");
+			}
         }
+		else if ((inArena == null) && (inMapData == null))
+		{
+			throw new MainControllerException("Arena & Map Data is null - Inside Main Controller Constructor.");
+		}
         else
         {
             arena = inArena;
@@ -88,68 +104,68 @@ public class MainController
         //ArrayList<Robot> clonedList = new ArrayList<Robot>();
 		synchronized(mutex)
 		{
+				
+				/*//Loop through each element and clone it.
+				for (Robot tempRobot : robotsOnBoard)
+				{
+					clonedList.add(tempRobot.clone());
+				}*/
 			
-			/*//Loop through each element and clone it.
+			//Synchronized and make a copy of newLocations
+			//Which we will iterate over instead.
+			
+			//for (Robot tempRobot : clonedList)
 			for (Robot tempRobot : robotsOnBoard)
 			{
-				clonedList.add(tempRobot.clone());
-			}*/
-		
-		//Synchronized and make a copy of newLocations
-		//Which we will iterate over instead.
-		
-        //for (Robot tempRobot : clonedList)
-        for (Robot tempRobot : robotsOnBoard)
-		{
-            Location<Double> newLocation = new Location<Double>();
-            Location<Integer> currentLocation = tempRobot.getCurrentLocation();
-            Location<Integer> destinationLocation = tempRobot.getDestinationLocation();            
-            
-            //If the Destination Location is null, the Robot hasn't moved.
-            /*if (destinationLocation == null)
-            {
-                //Paint the Robot in it's currentLocation
-                //Typecast to double.
-                newLocation.setX(Double.valueOf(currentLocation.getX()));
-                newLocation.setY(Double.valueOf(currentLocation.getY()));
-                newLocation.setLocationName(tempRobot.nameToString());
-                //Once all the Values of the Robot have been set to the new Location.
-                //Add it to the New Locations List.
-                newLocations.add(newLocation);
-            }
-			else
-			{
-				//If the destinationLocation isn't null, the Robot is moving.
-				newLocation = getPositionAlongRoute(tempRobot);
+				Location<Double> newLocation = new Location<Double>();
+				Location<Integer> currentLocation = tempRobot.getCurrentLocation();
+				Location<Integer> destinationLocation = tempRobot.getDestinationLocation();            
 				
-				newLocations.add(newLocation);
-			}*/
-			
-			//If the Moving Direction is Neutral, the Robot isn't moving so just
-			//Display at the Robot's current location.
-			if (tempRobot.getMovingDirection().equals("Neutral"))
-            {
-                //Paint the Robot in it's currentLocation
-                //Typecast to double.
-                newLocation.setX(Double.valueOf(currentLocation.getX()));
-                newLocation.setY(Double.valueOf(currentLocation.getY()));
-                newLocation.setLocationName(tempRobot.nameToString());
+				//If the Destination Location is null, the Robot hasn't moved.
+				/*if (destinationLocation == null)
+				{
+					//Paint the Robot in it's currentLocation
+					//Typecast to double.
+					newLocation.setX(Double.valueOf(currentLocation.getX()));
+					newLocation.setY(Double.valueOf(currentLocation.getY()));
+					newLocation.setLocationName(tempRobot.nameToString());
+					//Once all the Values of the Robot have been set to the new Location.
+					//Add it to the New Locations List.
+					newLocations.add(newLocation);
+				}
+				else
+				{
+					//If the destinationLocation isn't null, the Robot is moving.
+					newLocation = getPositionAlongRoute(tempRobot);
+					
+					newLocations.add(newLocation);
+				}*/
 				
-				//System.out.println("Neutral - getNewLocations() debug: " + newLocation.locationToString());
-                //Once all the Values of the Robot have been set to the new Location.
-                //Add it to the New Locations List.
-                newLocations.add(newLocation);
-            }
-			else
-			{
-				//If the destinationLocation isn't null, the Robot is moving.
-				newLocation = getPositionAlongRoute(tempRobot);
-				
-				System.out.println("Moving - getNewLocations() debug: " + newLocation.locationToString() + tempRobot.toString());
-				
-				newLocations.add(newLocation);
+				//If the Moving Direction is Neutral, the Robot isn't moving so just
+				//Display at the Robot's current location.
+				if (tempRobot.getMovingDirection().equals("Neutral"))
+				{
+					//Paint the Robot in it's currentLocation
+					//Typecast to double.
+					newLocation.setX(Double.valueOf(currentLocation.getX()));
+					newLocation.setY(Double.valueOf(currentLocation.getY()));
+					newLocation.setLocationName(tempRobot.nameToString());
+					
+					//System.out.println("Neutral - getNewLocations() debug: " + newLocation.locationToString());
+					//Once all the Values of the Robot have been set to the new Location.
+					//Add it to the New Locations List.
+					newLocations.add(newLocation);
+				}
+				else
+				{
+					//If the destinationLocation isn't null, the Robot is moving.
+					newLocation = getPositionAlongRoute(tempRobot);
+					
+					//System.out.println("Moving - getNewLocations() debug: " + newLocation.locationToString() + tempRobot.toString());
+					
+					newLocations.add(newLocation);
+				}
 			}
-        }
 		}
 		
 		return newLocations;
@@ -169,15 +185,24 @@ public class MainController
 		}
 	}
     
-    public boolean removeRobot(int x, int y)
+    public Robot removeRobot(int x, int y)
     {
-		boolean removeStatus = false;
+		System.out.println("X: " + x + " Y: " + y + " Reached inside Remove Robot at: " + System.currentTimeMillis());
 		
-		//Let this create a new Thread to run this task.
+		System.out.println("Size: " + robotsOnBoard.size());
+		Robot clonedRobot = null;
+		
 		//Task will check if the Robot is on the Map, remove it and the update ScoreTracker with Score.
-		
 		synchronized(mutex)
 		{
+			System.out.println("X: " + x + " Y: " + y + " Reached inside synchronized statement at: " + System.currentTimeMillis());
+			Robot robotToBeRemoved = null;
+			
+			if (robotsOnBoard.isEmpty())
+			{
+				System.out.println("Robots on Board shouldn't be empty.");
+			}
+			
 			for (Robot tempRobot : robotsOnBoard)
 			{
 				//Check if Current Location or Destination Location equals the
@@ -186,27 +211,20 @@ public class MainController
 				Location<Integer> currentLocation = tempRobot.getCurrentLocation();
 				Location<Integer> destinationLocation = tempRobot.getDestinationLocation();
 				
+				System.out.println("Remove Robot Debug: Target: (" + x + ", " + y + ") Current Location: " + currentLocation.locationToString() + "Destination Location: " + destinationLocation.locationToString());
 				if (currentLocation != null)
 				{
 					if ((currentLocation.getX() == x) && (currentLocation.getY() == y))
 					{
-						//Inside endLife, the Robot will end its threads and remove itself from GameMap.
-						tempRobot.endLife();
-						robotsOnBoard.remove(tempRobot);
-						
-						//Get a new Thread from Thread Pool to calculate score, which will then notify mainController that the score has changed.
-						
-						removeStatus = true;
+						robotToBeRemoved = tempRobot;
 					}
 					
 					if (destinationLocation != null)
 					{
 						if ((destinationLocation.getX() == x) && (currentLocation.getY() == y))
 						{
-							//Inside endLife, the Robot will end its threads and remove itself from GameMap.
-							tempRobot.endLife();
-							robotsOnBoard.remove(tempRobot);
-							removeStatus = true;
+							//Clean up Robot ends thread and Removes the Robot from the Board.
+							robotToBeRemoved = tempRobot;
 						}
 					}
 				}
@@ -215,9 +233,54 @@ public class MainController
 				   //Handle error
 				}
 			}
+			
+			System.out.println("Skipping For Loop inside MainController - RemoveRobot");
+			if (robotToBeRemoved == null)
+			{
+				clonedRobot = cleanUpRobot(robotToBeRemoved);
+			}
 		}
-		return removeStatus;
+		return clonedRobot;
     }
+	
+	public void addRobotController(RobotController inRobotController) 
+	{
+		//Shouldn't need to synchronise this as only the Factory Controller thread
+		//can add to this list.
+		//No need to check if inRobotController is null as this is done
+		//where the Robot Controller is created (FactoryController).
+		robotControllers.add(inRobotController);
+	}
+		
+	private Robot cleanUpRobot(Robot inRobot)
+	{
+		Robot newRobot = inRobot.clone();
+		System.out.println("Number of Robots on Board before Removal: " + robotsOnBoard.size());
+		robotsOnBoard.remove(inRobot);
+		System.out.println("Number of Robots on Board after Removal: " + robotsOnBoard.size());
+		RobotController controllerToBeRemoved = null;
+		
+		System.out.println("Number of Controllers before Removal: " + robotControllers.size());
+		//Iterate through controllers and find match.
+		for (RobotController robotController : robotControllers)
+		{
+			if (robotController.matchingRobot(inRobot) == true)
+			{
+				//Call the Stop Thread inside the Controller which will then handle it's own cleanup
+				robotController.stopThread();
+				controllerToBeRemoved = robotController;
+			}
+		}
+		
+		if (controllerToBeRemoved != null)
+		{
+			robotControllers.remove(controllerToBeRemoved);
+			System.out.println("Number of Controllers after Removal: " + robotControllers.size());
+		}
+		
+		//Return the Robot we cloned.
+		return newRobot;		
+	}
 	
 	public boolean setNewRobotInCorner(Robot inRobot)
 	{
@@ -228,6 +291,7 @@ public class MainController
 			synchronized(mutex)
 			{
 				robotsOnBoard.add(inRobot);
+				
 			}
 			//Robot has successfully been created so we want to add this event to the logger.
 			printEvent("Robot " + inRobot.getUniqueID() + ": Created at " + inRobot.getCurrentLocation().locationToString());
@@ -324,12 +388,18 @@ public class MainController
 		logger = inLogger;
 	}
 	
+	public void setScoreTracker(ScoreTracker inScoreTracker)
+	{
+		scoreTracker = inScoreTracker;
+	}
+	
 	//Do we need to synchronise this as multiple threads will be calling this.
 	public void printEvent(String inEvent)
 	{
+		System.out.println("Attempting to print event: \n" + inEvent);
 		SwingUtilities.invokeLater(() ->
         {
-			logger.append(inEvent);
+			logger.append(inEvent + "\n");
 		});
 	}
 	
@@ -340,4 +410,16 @@ public class MainController
 			scoreLabel.setText("Score: " + inScore);
 		});
 	}	
+	
+	public void notifyScoreTrackerDestroyed(Robot inRobot, long inTimeTaken)
+	{
+		Runnable notifyScoreTask = () ->
+		{
+			//Do some work on the new thread.
+			scoreTracker.destroyedRobot(inRobot, inTimeTaken);
+		};
+		
+		//Submit this task to the thread pool.
+		startTaskInNewThread(notifyScoreTask);
+	}
 }

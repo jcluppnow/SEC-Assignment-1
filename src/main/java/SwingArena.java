@@ -30,13 +30,21 @@ public class SwingArena extends JPanel
     /**
      * Creates a new arena object, loading the robot image.
      */
-    public SwingArena(int inWidth, int inHeight, ActionsContainer inActionContainer)
+    public SwingArena(int inWidth, int inHeight, ActionsContainer inActionContainer) throws ArenaException
     {
         // Here's how you get an Image object from an image file (which you provide in the 
         // 'resources/' directory.
 		gridWidth = inWidth;
 		gridHeight = inHeight;
+		
+		if (inActionContainer == null)
+		{
+			throw new ArenaException("Action Container is null.");
+		}
+		
 		actionsContainer = inActionContainer;
+		robotLocations = new ArrayList<Location<Double>>();
+		
         URL url = getClass().getClassLoader().getResource(IMAGE_FILE);
         if(url == null)
         {
@@ -52,6 +60,10 @@ public class SwingArena extends JPanel
 	
     public void animateRobots(ArrayList<Location<Double>> inNewLocations)
     {
+		if (inNewLocations == null)
+		{
+			System.out.println("Locations ArrayList coming in is null.");
+		}
         robotLocations = inNewLocations;
 		repaint();
     }
@@ -148,6 +160,12 @@ public class SwingArena extends JPanel
         
         // Invoke helper methods to draw things at the current location.
         // ** You will need to adapt this to the requirements of your application. **
+		
+		if (robotLocations == null)
+		{
+			System.out.println("Robot locations is null.");
+		}
+		
         for (Location<Double> tempLocation : robotLocations)
         {
 			double x = tempLocation.getX().doubleValue();
@@ -259,19 +277,34 @@ public class SwingArena extends JPanel
     {
 		Runnable myTask = () ->
 		{
-			//Create a new action with the coordinates and time it occurred.
-			Action newAction = new Action(x, y, inClickTime);
-			
 			try
 			{
+				//Create a new action with the coordinates and time it occurred.
+				Action newAction = new Action(new Location<Integer>(x, y, "Location at " + inClickTime), inClickTime);
 				//Add the action to the Blocking Queue
+				//Put should never block as its a LinkedBlockingQueue.
+				//We do this so the Arena never blocks.
 				actionsContainer.putNextAction(newAction);
 			}
 			catch(InterruptedException interruptedException)
 			{
 				//Do something
 			}
+			catch (ActionException actionException)
+			{
+				System.out.println(actionException.getMessage());
+			}
 		};
+		
+		if (myTask == null)
+		{
+			System.out.println("Task is null.");
+		}
+		
+		if (mainController == null)
+		{
+			System.out.println("Main Controller is null inside SwingArena");
+		}
 		
 		//Submit the task to be started on the ThreadPool.
 		mainController.startTaskInNewThread(myTask);
